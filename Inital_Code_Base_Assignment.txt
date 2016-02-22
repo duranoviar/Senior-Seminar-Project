@@ -1,0 +1,22 @@
+Arnej Duranovic
+February 22, 2016
+
+Initial Code Base Documentation
+
+Since I feel like I have a pretty solid code base that consists entirely of my own code,
+I have elected not to include any other code snippets. I hope this is okay. 
+
+Relevance to project: All code found in this repo is code that I wrote and is the implementation of my project so far.
+
+Main.py - contains the main game logic. Run this to paly the game
+Objects.py - contains class objects I created for use in main.py
+globals.py - contains definitions I use in main.py
+
+Note: This is just the initial code base and it will require additional features and refactoring. 
+Example Code Referenced: I have referenced many different tutorials that I have documented in my bibliography 
+                         and thus chose not to include them here as they are (1) easily accessable from bibliography
+                         and (2) I think my initial code base is sufficient for the perceived purpose of this assignment. 
+
+
+
+
