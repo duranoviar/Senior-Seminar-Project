@@ -29,7 +29,7 @@ class Player(pygame.sprite.Sprite):
         self.game_display.blit(self.player_img, (self.rect.x, self.rect.y))
 
 class Missile(pygame.sprite.Sprite):
-    def __init__(self, sprite, missile_img, down=True):
+    def __init__(self, sprite, missile_img, down=True, speed=4):
         pygame.sprite.Sprite.__init__(self)
 
         # get the display surface
@@ -43,9 +43,9 @@ class Missile(pygame.sprite.Sprite):
         self.rect.x = sprite.rect.x + 17
         self.rect.y = sprite.rect.y
         if down:
-            self.speed = 4
+            self.speed = speed
         else:
-            self.speed = -4
+            self.speed = -speed
 
     def update(self):
         # fire missile from where the player is
@@ -54,30 +54,35 @@ class Missile(pygame.sprite.Sprite):
 
 
 class PowerUp(pygame.sprite.Sprite):
-    def __init__(self, speed=2):
+    def __init__(self, speed=2, pu_type=None):
         pygame.sprite.Sprite.__init__(self)
+
+        # define the type of powerup
+        self.pu_type = pu_type
 
         # get the display surface
         self.game_display = pygame.display.get_surface()
 
         # load image
-        self.power_up_image = pygame.image.load('power_up_speed.gif')
+        self.power_up_image = pygame.image.load(PU_TYPE_IMAGE[self.pu_type])
         self.rect = self.power_up_image.get_rect()
 
-        # define attributes of the enemy
+        # define attributes of the powerup
         self.rect.x = random.randrange(0, DISPLAY_WIDTH)
         self.rect.y = -DISPLAY_HEIGHT
         self.speed = speed
 
+
     def update(self):
-        # update the position of the enemy
+        # update the position of the powerup
         self.rect.y += self.speed
         self.game_display.blit(self.power_up_image, (self.rect.x, self.rect.y))
 
     def reset(self):
-        # reset the enemy position
+        # reset the powerup position
         self.rect.x = random.randrange(0, DISPLAY_WIDTH)
         self.rect.y = -50
+
 
 class BasicEnemy(pygame.sprite.Sprite):
     def __init__(self, speed=2):
@@ -130,3 +135,13 @@ class Button(pygame.sprite.Sprite):
 
     def update(self):
         self.game_display.blit(self.image, (self.rect.x, self.rect.y))
+
+
+def get_high_score():
+    with open(SCORE_FILE, 'r') as score_file:
+        return score_file.read().split(" ")
+
+def write_high_score(name, score):
+    with open(SCORE_FILE, 'w') as score_file:
+        string = name + " " + str(score)
+        score_file.write(string)

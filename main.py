@@ -5,6 +5,7 @@ from pygame.locals import *
 
 from globals import *
 from objects import *
+from textbox import *
 
 pygame.mixer.pre_init(44100, -16, 1, 512)
 pygame.init()
@@ -12,10 +13,13 @@ pygame.init()
 # set up the display
 gameDisplay = pygame.display.set_mode((DISPLAY_WIDTH, DISPLAY_HEIGHT))
 pygame.display.set_caption('Test Game')
+icon_pic = pygame.image.load('player/player.gif').convert()
+pygame.display.set_icon(icon_pic)
 
 # set up the clock
 clock = pygame.time.Clock()
 backgroundImg = pygame.image.load('backgrounds/Grid2.png').convert()
+instructionsImg = pygame.image.load('backgrounds/Instructions.png').convert()
 
 # create one player
 player = Player()
@@ -65,12 +69,12 @@ def message_display(text):
 	pygame.display.update()
 	time.sleep(2)
 
-def crash():
+def crash(enemy_hit_count, enemy_dodge_count):
 	message_display('You Crashed')
 	enemy_missiles.empty()
 	basic_enemies.empty()
 	missiles.empty()
-	game_loop()
+	game_end_loop(enemy_hit_count, enemy_dodge_count)
 
 def game_menu():
 
@@ -92,11 +96,9 @@ def game_menu():
 					pygame.quit()
 					quit()
 				if button_highscore.pressed(event.pos):
-					pygame.quit()
-					quit()
+					high_score_loop()
 				if button_instructions.pressed(event.pos):
-					pygame.quit()
-					quit()
+					instructions_loop()
 
 		gameDisplay.blit(backgroundImg, (0,0))
 		font = pygame.font.Font('fonts/future.ttf', 75)
@@ -111,6 +113,150 @@ def game_menu():
 		pygame.display.update()
 		clock.tick(15)
 
+def instructions_loop():
+
+	button_back = Button('ui/button_back.png', 280, 530)
+	menu = True
+	while menu:
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				pygame.quit()
+				quit()
+			if event.type == pygame.MOUSEBUTTONDOWN:
+				if button_back.pressed(event.pos):
+					game_menu()
+
+		gameDisplay.blit(instructionsImg, (0,0))
+
+		button_back.update()
+		pygame.display.update()
+		clock.tick(15)
+
+def game_end_loop(enemy_hit_count, enemy_dodge_count):
+
+	button_play_again = Button('ui/button_play_again.png', 280, 450)
+	button_main_menu = Button('ui/button_main_menu.png', 280, 500)
+
+	score = enemy_hit_count * 3 + enemy_dodge_count
+
+	# get high scores
+	name, current_score = get_high_score()
+
+	if score > int(current_score):
+		menu = True
+		score_recorded = False
+		while menu:
+			for event in pygame.event.get():
+				if event.type == pygame.QUIT:
+					pygame.quit()
+					quit()
+				if event.type == pygame.MOUSEBUTTONDOWN:
+					if button_play_again.pressed(event.pos):
+						game_loop()
+					if button_main_menu.pressed(event.pos):
+						game_menu()
+
+			gameDisplay.blit(backgroundImg, (0,0))
+
+			header_font = pygame.font.Font('fonts/future.ttf', 65)
+			font = pygame.font.Font('fonts/future.ttf', 45)
+
+			TextSurf, TextRect = text_objects("New High Score!", header_font)
+			TextRect.center = (400, 100)
+
+			score_string = "New High Score: " + str(score)
+
+			TextSurf2, TextRect2 = text_objects(score_string, font)
+			TextRect2.center = (400, 250)
+
+			gameDisplay.blit(TextSurf, TextRect)
+			gameDisplay.blit(TextSurf2, TextRect2)
+			button_play_again.update()
+			button_main_menu.update()
+			pygame.display.update()
+
+			if not score_recorded:
+				name = ask(gameDisplay, "Name")
+				write_high_score(name.replace(" ","_"), score)
+				score_recorded = True
+
+			clock.tick(15)
+
+	else:
+		# display play again or main menu
+		menu = True
+		while menu:
+			for event in pygame.event.get():
+				if event.type == pygame.QUIT:
+					pygame.quit()
+					quit()
+				if event.type == pygame.MOUSEBUTTONDOWN:
+					if button_play_again.pressed(event.pos):
+						game_loop()
+					if button_main_menu.pressed(event.pos):
+						game_menu()
+
+			gameDisplay.blit(backgroundImg, (0,0))
+
+			header_font = pygame.font.Font('fonts/future.ttf', 75)
+			font = pygame.font.Font('fonts/future.ttf', 45)
+
+			TextSurf, TextRect = text_objects("Game Over", header_font)
+			TextRect.center = (400, 100)
+
+			score_string = "Your Score: " + str(score)
+			current_score_string = "High Score: " + current_score
+
+			TextSurf2, TextRect2 = text_objects(score_string, font)
+			TextRect2.center = (400, 250)
+
+			TextSurf3, TextRect3 = text_objects(current_score_string, font)
+			TextRect3.center = (400, 350)
+
+			gameDisplay.blit(TextSurf, TextRect)
+			gameDisplay.blit(TextSurf2, TextRect2)
+			gameDisplay.blit(TextSurf3, TextRect3)
+			button_play_again.update()
+			button_main_menu.update()
+			pygame.display.update()
+			clock.tick(15)
+
+def high_score_loop():
+	button_back = Button('ui/button_back.png', 280, 530)
+
+	name, score = get_high_score()
+	menu = True
+	while menu:
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				pygame.quit()
+				quit()
+			if event.type == pygame.MOUSEBUTTONDOWN:
+				if button_back.pressed(event.pos):
+					game_menu()
+
+		header_font = pygame.font.Font('fonts/future.ttf', 75)
+		font = pygame.font.Font('fonts/future.ttf', 45)
+
+		gameDisplay.blit(backgroundImg, (0,0))
+
+		TextSurf, TextRect = text_objects("High Score", header_font)
+		TextRect.center = (400, 100)
+
+		TextSurf2, TextRect2 = text_objects(name, font)
+		TextRect2.center = (400, 250)
+
+		TextSurf3, TextRect3 = text_objects(str(score), font)
+		TextRect3.center = (400, 300)
+
+		gameDisplay.blit(TextSurf, TextRect)
+		gameDisplay.blit(TextSurf2, TextRect2)
+		gameDisplay.blit(TextSurf3, TextRect3)
+
+		button_back.update()
+		pygame.display.update()
+		clock.tick(15)
+
 def game_loop():
 
 	# set up counters
@@ -119,8 +265,11 @@ def game_loop():
 	level = 1
 
 	enemy_speed = 2
+	player_missile_speed = 4
 
 	power_up_active = False
+	power_up_time = 0
+	power_up = None
 
 	running = True
 	while running:
@@ -133,13 +282,14 @@ def game_loop():
 				elif event.key == pygame.K_RIGHT:
 					player.change_x = player.speed
 				elif event.key == pygame.K_SPACE:
-					missiles.add(Missile(player, BASIC_MISSILE_PLAYER))
+					missiles.add(Missile(player, BASIC_MISSILE_PLAYER,
+						True, player_missile_speed))
 					pygame.mixer.Sound.play(sound_laser)
 			if event.type == pygame.KEYUP:
 				if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
 					player.change_x = 0
 
-		# update speeds
+		# update speeds and levels
 		if enemy_hit_count + enemy_dodge_count >= 1200:
 			enemy_speed = 7
 			level = 6
@@ -159,11 +309,6 @@ def game_loop():
 		# generate more basic enemies if needed
 		if len(basic_enemies) < MAX_BASIC_ENEMIES:
 			basic_enemies.add(BasicEnemy(enemy_speed))
-
-		# generate random power up
-		rand = random.randrange(0, 5000)
-		if rand == 1:
-		    power_ups.add(PowerUp())
 
 		# fire enemy missiles
 		for enemy in basic_enemies:
@@ -186,10 +331,12 @@ def game_loop():
 
         # crash game if player gets hit by enemy
 		if pygame.sprite.spritecollide(player,basic_enemies,True):
-			crash()
+			player.speed = 3
+			crash(enemy_hit_count, enemy_dodge_count)
 
 		if pygame.sprite.spritecollide(player,enemy_missiles,True):
-			crash()
+			player.speed = 3
+			crash(enemy_hit_count, enemy_dodge_count)
 
 		# if user hits enemy with missile, destroy both sprites
 		if pygame.sprite.groupcollide(basic_enemies, missiles, True, True):
@@ -199,8 +346,35 @@ def game_loop():
 		# Delete missiles that hit eachother
 		pygame.sprite.groupcollide(enemy_missiles, missiles, True, True)
 
-		if pygame.sprite.spritecollide(player, power_ups, True):
-			player.speed = 10
+		# try to generate powerup if no powerup is active
+		if not power_up_active:
+			rand = random.randrange(0, 5000)
+			if rand == 1:
+				power_ups.add(PowerUp(pu_type='player_speed_boost'))
+			if rand == 2:
+				power_ups.add(PowerUp(pu_type='missile_speed_boost'))
+
+		# check if user collects powerup
+		collisions = pygame.sprite.spritecollide(player, power_ups, True)
+		if collisions:
+			power_up = collisions[0]
+			power_up_active = True
+			if power_up.pu_type == "player_speed_boost":
+				player.speed = 7
+			elif power_up.pu_type == "missile_speed_boost":
+				player_missile_speed = 10
+
+		# check if powerup duration is up
+		if power_up_active:
+			if power_up_time >= POWER_UP_DURATION:
+				power_up_active = False
+				power_up_time = 0
+				if power_up.pu_type == "player_speed_boost":
+					player.speed = 3
+				elif power_up.pu_type == "missile_speed_boost":
+					player_missile_speed = 4
+			else:
+				power_up_time += 1
 
 		# Delete missiles that run off the screen
 		for missile in missiles:
